@@ -2,20 +2,61 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Consola Python Web con Predictor</title>
+  <title>Consola Python Web</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <style>
-    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
-    h2 { color: #0f0; }
-    #console { border: 1px solid #0f0; padding: 10px; height: 250px; overflow-y: auto; background: #000; margin-bottom: 10px; }
-    .CodeMirror { height: 150px; background: #222; color: #0f0; }
-    button { margin-right: 10px; padding: 10px; background: #0f0; color: #000; font-weight: bold; border: none; cursor: pointer; }
-    .error { color: #f33; }
-    .suggestion { color: #ff0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      padding: 20px;
+    }
+    h2 {
+      color: #2c3e50;
+    }
+    #console {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      height: 250px;
+      overflow-y: auto;
+      background: #ffffff;
+      margin-bottom: 10px;
+      font-family: monospace;
+      color: #2c3e50;
+    }
+    .CodeMirror {
+      height: 150px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #2c3e50;
+      font-family: monospace;
+    }
+    button {
+      margin-right: 10px;
+      padding: 10px 15px;
+      background: #3498db;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .suggestion {
+      color: #f39c12;
+    }
   </style>
 </head>
 <body>
-  <h2>Consola Python Web con Predictor</h2>
+  <h2>Consola Python Web</h2>
   <div id="console"></div>
   <textarea id="code">print("hello_world")</textarea><br>
   <button onclick="runCode()">Ejecutar</button>
