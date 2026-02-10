@@ -2,23 +2,72 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chatbot con Memoria</title>
-  <!-- Enlace al archivo de estilos -->
-  <link rel="stylesheet" href="styles/styles.css">
+  <title>Consola Python Web</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    h2 { color: #0f0; }
+    #console { border: 1px solid #0f0; padding: 10px; height: 300px; overflow-y: auto; background: #000; margin-bottom: 10px; }
+    textarea { width: 100%; height: 120px; background: #222; color: #0f0; border: none; padding: 10px; }
+    button { margin-right: 10px; padding: 10px; background: #0f0; color: #000; font-weight: bold; border: none; cursor: pointer; }
+    .error { color: #f33; }
+    .suggestion { color: #ff0; }
+  </style>
 </head>
 <body>
-  <h2>Chatbot</h2>
-  
-  <!-- Área de chat -->
-  <div id="chat"></div>
-  
-  <!-- Entrada de texto -->
-  <input id="input" type="text" placeholder="Escribe algo...">
-  <button id="send">Enviar</button>
+  <h2>Consola Python Web</h2>
+  <div id="console"></div>
+  <textarea id="code">print("hello_world")</textarea><br>
+  <button onclick="runCode()">Ejecutar</button>
+  <button onclick="clearConsole()">Limpiar</button>
 
-  <!-- Scripts principales -->
-  <script src="functions/Languaje.js"></script>
-  <script src="functions/Memory.js"></script>
-  <script src="functions/Bot.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <script>
+    let errorCount = 0;
+
+    async function loadPyodideAndPackages() {
+      window.pyodide = await loadPyodide();
+    }
+    loadPyodideAndPackages();
+
+    function clearConsole() {
+      document.getElementById("console").innerHTML = "";
+      errorCount = 0;
+    }
+
+    async function runCode() {
+      const code = document.getElementById("code").value;
+      try {
+        let output = await pyodide.runPythonAsync(code);
+        document.getElementById("console").innerHTML += 
+          "<span>> " + code + "</span><br>" + (output ?? "") + "<br>";
+      } catch (err) {
+        errorCount++;
+        let suggestion = getSuggestion(err.message);
+        document.getElementById("console").innerHTML += 
+          "<div class='error'>Error " + errorCount + ": " + err.message + "</div>" +
+          (suggestion ? "<div class='suggestion'>Sugerencia: " + suggestion + "</div>" : "") + "<br>";
+      }
+    }
+
+    function getSuggestion(errorMsg) {
+      errorMsg = errorMsg.toLowerCase();
+      if (errorMsg.includes("syntaxerror")) {
+        if (errorMsg.includes("print")) {
+          return "¿Olvidaste los paréntesis en print? Usa: print(\"texto\")";
+        }
+        return "Revisa la sintaxis: faltan dos puntos, paréntesis o indentación.";
+      }
+      if (errorMsg.includes("nameerror")) {
+        return "Estás usando una variable que no definiste. Declárala antes.";
+      }
+      if (errorMsg.includes("typeerror")) {
+        return "Verifica los tipos de datos: no puedes sumar texto con números directamente.";
+      }
+      if (errorMsg.includes("indentationerror")) {
+        return "Revisa la indentación: Python necesita espacios correctos en bloques.";
+      }
+      return null;
+    }
+  </script>
 </body>
 </html>
