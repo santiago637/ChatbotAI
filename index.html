@@ -2,23 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Consola Python Web - Modo Oscuro</title>
+  <title>Consola Python Web Mejorada</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #1e1e1e;
       color: #d4d4d4;
       padding: 20px;
+      transition: background 0.3s, color 0.3s;
     }
-    h2 {
-      color: #ffffff;
-    }
+    h2 { color: #ffffff; }
     #console {
       border: 1px solid #333;
       border-radius: 6px;
       padding: 10px;
-      height: 250px;
+      height: 200px;
       overflow-y: auto;
       background: #252526;
       margin-bottom: 10px;
@@ -29,8 +30,6 @@
       height: 150px;
       border: 1px solid #333;
       border-radius: 6px;
-      background: #1e1e1e;
-      color: #d4d4d4;
       font-family: monospace;
     }
     button {
@@ -43,24 +42,57 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background: #005a9e;
+    button:hover { background: #005a9e; }
+    .error { color: #f44747; font-weight: bold; }
+    .suggestion { color: #ffcc00; }
+    #history {
+      margin-top: 15px;
+      background: #2c2c2c;
+      padding: 10px;
+      border-radius: 6px;
     }
-    .error {
-      color: #f44747;
-      font-weight: bold;
+    #history h3 { margin-top: 0; color: #fff; }
+    .history-item {
+      background: #3c3c3c;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 4px;
+      color: #ddd;
     }
-    .suggestion {
-      color: #ffcc00;
+    .history-item button {
+      background: #e74c3c;
+      margin-left: 10px;
     }
+    .light-mode {
+      background: #f5f5f5;
+      color: #333;
+    }
+    .light-mode #console {
+      background: #ffffff;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    .light-mode .history-item {
+      background: #eaeaea;
+      color: #333;
+    }
+    .light-mode h2, .light-mode #history h3 { color: #2c3e50; }
   </style>
 </head>
 <body>
-  <h2>Consola Python Web (Modo Oscuro)</h2>
+  <h2>Consola Python Web Mejorada</h2>
   <div id="console"></div>
   <textarea id="code">print("hello_world")</textarea><br>
   <button onclick="runCode()">Ejecutar</button>
-  <button onclick="clearConsole()">Limpiar</button>
+  <button onclick="clearConsole()">Limpiar Consola</button>
+  <button onclick="resetCode()">Eliminar Código</button>
+  <button onclick="toggleTheme()">Alternar Tema</button>
+  <button onclick="saveCode()">Guardar Código</button>
+
+  <div id="history">
+    <h3>Historial de Guardados</h3>
+    <div id="historyList"></div>
+  </div>
 
   <!-- Librerías CodeMirror -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -74,6 +106,8 @@
   <script>
     let errorCount = 0;
     let editor;
+    let darkMode = true;
+    let history = [];
 
     async function loadPyodideAndPackages() {
       window.pyodide = await loadPyodide();
@@ -85,6 +119,7 @@
         mode: "python",
         lineNumbers: true,
         autoCloseBrackets: true,
+        theme: "dracula",
         extraKeys: {
           "Tab": function(cm) {
             CodeMirror.commands.autocomplete(cm);
@@ -96,6 +131,16 @@
     function clearConsole() {
       document.getElementById("console").innerHTML = "";
       errorCount = 0;
+    }
+
+    function resetCode() {
+      editor.setValue("");
+    }
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle("light-mode", !darkMode);
+      editor.setOption("theme", darkMode ? "dracula" : "eclipse");
     }
 
     async function runCode() {
@@ -143,6 +188,32 @@ sys.stdout.getvalue()
         return "Revisa la indentación: Python necesita espacios correctos en bloques.";
       }
       return null;
+    }
+
+    function saveCode() {
+      const code = editor.getValue();
+      if (code.trim() === "") return;
+      const timestamp = new Date().toLocaleString();
+      history.push({ code, timestamp });
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      list.innerHTML = "";
+      history.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `<strong>${item.timestamp}</strong><br><pre>${item.code}</pre>`;
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Eliminar";
+        deleteBtn.onclick = () => {
+          history.splice(index, 1);
+          renderHistory();
+        };
+        div.appendChild(deleteBtn);
+        list.appendChild(div);
+      });
     }
   </script>
 </body>
