@@ -37,9 +37,22 @@
     async function runCode() {
       const code = document.getElementById("code").value;
       try {
-        let output = await pyodide.runPythonAsync(code);
-        document.getElementById("console").innerHTML += 
-          "<span>> " + code + "</span><br>" + (output ?? "") + "<br>";
+        // Capturamos la salida estándar de Python
+        let output = await pyodide.runPythonAsync(`
+import sys
+from io import StringIO
+buffer = StringIO()
+sys.stdout = buffer
+try:
+    exec("""${code}""")
+except Exception as e:
+    raise e
+sys.stdout.getvalue()
+        `);
+
+        if (output.trim() !== "") {
+          document.getElementById("console").innerHTML += output + "<br>";
+        }
       } catch (err) {
         errorCount++;
         let suggestion = getSuggestion(err.message);
