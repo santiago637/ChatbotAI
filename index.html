@@ -2,32 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Consola Python Web</title>
+  <title>Consola Python Web con Predictor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <style>
     body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
     h2 { color: #0f0; }
-    #console { border: 1px solid #0f0; padding: 10px; height: 300px; overflow-y: auto; background: #000; margin-bottom: 10px; }
-    textarea { width: 100%; height: 120px; background: #222; color: #0f0; border: none; padding: 10px; }
+    #console { border: 1px solid #0f0; padding: 10px; height: 250px; overflow-y: auto; background: #000; margin-bottom: 10px; }
+    .CodeMirror { height: 150px; background: #222; color: #0f0; }
     button { margin-right: 10px; padding: 10px; background: #0f0; color: #000; font-weight: bold; border: none; cursor: pointer; }
     .error { color: #f33; }
     .suggestion { color: #ff0; }
   </style>
 </head>
 <body>
-  <h2>Consola Python Web</h2>
+  <h2>Consola Python Web con Predictor</h2>
   <div id="console"></div>
   <textarea id="code">print("hello_world")</textarea><br>
   <button onclick="runCode()">Ejecutar</button>
   <button onclick="clearConsole()">Limpiar</button>
 
+  <!-- Librerías CodeMirror -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+  <!-- Pyodide -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
   <script>
     let errorCount = 0;
+    let editor;
 
     async function loadPyodideAndPackages() {
       window.pyodide = await loadPyodide();
     }
     loadPyodideAndPackages();
+
+    window.onload = function() {
+      editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: "python",
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        extraKeys: {
+          "Tab": function(cm) {
+            CodeMirror.commands.autocomplete(cm);
+          }
+        }
+      });
+    };
 
     function clearConsole() {
       document.getElementById("console").innerHTML = "";
@@ -35,9 +58,8 @@
     }
 
     async function runCode() {
-      const code = document.getElementById("code").value;
+      const code = editor.getValue();
       try {
-        // Capturamos la salida estándar de Python
         let output = await pyodide.runPythonAsync(`
 import sys
 from io import StringIO
